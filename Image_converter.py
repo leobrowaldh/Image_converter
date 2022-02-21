@@ -5,30 +5,41 @@ from PIL import Image, UnidentifiedImageError
 import os
 
 
-def converter(input):
+def converter(infold, outfold, formatout, rot, sze):
     # Iterating through the folder:
-    for filename in os.listdir(input):
-        file = os.path.join(input, filename)
+    for filename in os.listdir(infold):
+        file = os.path.join(infold, filename)
         # Make sure it is a file and not a folder:
         if os.path.isfile(file):
             # Try to open, modify, and save the image file to the desired folder
             try:
                 im = Image.open(file)
-                new_im = im.rotate(270).resize((128,128))
+                print("im data: " + str(im.getdata()))
+                # Rotating, resizing:
+                new_im = im.rotate(rot).resize(sze).convert('RGBA')
+                print("new_im data: " + str(new_im.getdata()))
                 # Changing format:
+                # Obtaining the new file name:
                 f, e = os.path.splitext(filename)
-                outfile = "/" + f + "." + format_to
+                outfile = "/" + f + "." + formatout
+                # Creating background:
+                background = Image.new('RGBA', new_im.size, (60, 60, 60))
+                print("background data: " + str(background.getdata()))
+                # Joining modified file with background:
+                final = Image.alpha_composite(background, new_im).convert("RGB")
+                # Saving
                 if file != outfile:
-                    new_im.convert('RGB').save(folder_out + outfile)
+                    final.save(outfold + outfile, formatout, quality=80)
             # If it is not a valid image file, continue to next file.
             except UnidentifiedImageError:
                 continue
+
 
 if __name__ == '__main__':
     # The Variables, modify as needed:
     folder_in = "./test"
     folder_out = "./test/destination_folder"
-    format_to = "jpeg"
-    rotation = "90"
-    size = "128x128"
-    converter(folder_in)
+    format_to = "JPEG"
+    rotation = 270
+    size = 128, 128
+    converter(folder_in, folder_out, format_to, rotation, size)
